@@ -1,0 +1,21 @@
+{
+  "name": "pizza",
+  "description": "A solution to the challenges described here https://gist.github.com/mistidoi/45c0e642e39c7ab8c1ac3ba0c2015dc2",
+  "author": "Marc Vieira-Cardinal <marc.cardinal@gmail.com>",
+  "license": "GPL-3.0",
+  "bin": {
+    "pizza": "./index.js"
+  },
+  "scripts": {
+    "test": "./tests/index.js"
+  },
+  "dependencies": {
+    "chai": "^3.5.0",
+    "cli-table": "^0.3.1",
+    "commander": "^2.9.0",
+    "hashmap": "^2.0.6",
+    "mocha": "^3.1.2",
+    "progress": "^1.1.8"
+  },
+  "engine": "node 6.8.0"
+}
