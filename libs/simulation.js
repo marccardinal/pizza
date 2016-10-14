@@ -99,11 +99,11 @@ Simulation.prototype.pretty = function() {
     grid[coords[1]-minY][coords[0]-minX] = value;
   });
 
-  //And finally print the table
+  //And finally print an horizontally mirrored table (0,0) in bottom left
   var table = new Table({
     style: { 'padding-left': 0, 'padding-right': 0, 'compact': true }
   });
-  for (var y = 0; y < grid.length; y++) {
+  for (var y = grid.length-1; y > 0; y--) {
     table.push(grid[y]);
   }
   console.log(table.toString());
