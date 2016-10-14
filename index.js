@@ -22,7 +22,8 @@ function argInt(string, defaultValue) {
 program
   .usage('[options] <file>')
   .option('-w, --workers <n>', 'Number of delivery people', argInt, 1)
-  .option('-p, --pretty', 'Display a pretty version of the resulsts')
+  .option('-p, --ascii', 'Display an ascii version of the results')
+  .option('-o, --png <file>', 'Generate a png map of the houses')
   .action(function(file) {
     console.log("Running with %s and %s workers", file, program.workers);
 
@@ -34,8 +35,11 @@ program
 
     // The simulation is over, let's print the output
     simulation.on('runDone', function() {
-        if (program.pretty) {
-            this.pretty();
+        if (program.ascii) {
+            this.ascii();
+        }
+        if (program.png) {
+            this.png(program.png);
         }
 
       console.log("%s houses were visited!", this.getHousesCount());

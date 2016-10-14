@@ -4,6 +4,7 @@ var events = require('events');
 var HashMap = require('hashmap');
 var ProgressBar = require('progress');
 var Table = require('cli-table');
+var PNG = require('pngjs').PNG;
 
 var Dispatcher = require('./dispatcher.js');
 
@@ -67,7 +68,56 @@ Simulation.prototype.run = function() {
 };
 
 //Display the house map
-Simulation.prototype.pretty = function() {
+Simulation.prototype.ascii = function() {
+
+  var houses = this.housesMatrix();
+
+  //Print a horizontally mirrored table (0,0) in bottom left
+  var table = new Table({
+    style: { 'padding-left': 0, 'padding-right': 0, 'compact': true }
+  });
+  for (var y = houses.height-1; y >= 0; y--) {
+    table.push(this.zerosAsSpaces(houses.grid[y]));
+  }
+  console.log(table.toString());
+};
+
+//Generate a png representation of the house map
+Simulation.prototype.png = function(file) {
+
+  var houses = this.housesMatrix();
+
+  //Create a new (empty) png
+  var png = new PNG({
+    width: houses.width,
+    height: houses.height
+  });
+
+  //Populate the png with shades of red pixels everywhere we went
+  //and leave the rest fully transparent
+  //Here too we do a horizontal mirror so that the drawing orientation
+  //matches what we naturally expect
+  for (var y = 0; y < houses.height; y++) {
+    for (var x = 0; x < houses.width; x++) {
+      var idx = (houses.width * (houses.height - y - 1) + x) << 2;
+      var intensity = parseInt(this.percentRank(houses.values, houses.grid[y][x]) * 255);
+
+      png.data[idx + 0] = intensity;
+      png.data[idx + 1] = 0;
+      png.data[idx + 2] = 0;
+      png.data[idx + 3] = (houses.grid[y][x] > 0)
+        ? 255
+        : 0;
+    }
+  }
+
+  //Write it to disk
+  png.pack().pipe(fs.createWriteStream(file));
+  return this;
+};
+
+//Squash the house hashmap into a 2d grid and compute some useful metadata
+Simulation.prototype.housesMatrix = function() {
   var minX = null;
   var maxX = null;
   var minY = null;
@@ -90,7 +140,7 @@ Simulation.prototype.pretty = function() {
   //Initialize a 2d grid
   var grid = new Array(height);
   for (var i = 0; i < grid.length; i++) {
-    grid[i] = new Array(width).fill(" ");
+    grid[i] = new Array(width).fill(0);
   }
 
   //Populate the 2d grid with values
@@ -99,14 +149,43 @@ Simulation.prototype.pretty = function() {
     grid[coords[1]-minY][coords[0]-minX] = value;
   });
 
-  //And finally print an horizontally mirrored table (0,0) in bottom left
-  var table = new Table({
-    style: { 'padding-left': 0, 'padding-right': 0, 'compact': true }
-  });
-  for (var y = grid.length-1; y > 0; y--) {
-    table.push(grid[y]);
+  return {
+    minX: minX,
+    maxX: maxX,
+    minY: minY,
+    maxY: maxY,
+    maxVal: maxVal,
+    width: width,
+    height: height,
+    grid: grid,
+    values: this.houses.values()
+  };
+};
+
+//Calculate the percentile rank for a given value in an array of values
+//Source: https://gist.github.com/IceCreamYou/6ffa1b18c4c8f6aeaad2
+//Returns a value between 0 and 1
+Simulation.prototype.percentRank = function(values, value) {
+  if (typeof value !== 'number')
+    throw new TypeError('value must be a number');
+  for (var i = 0, l = values.length; i < 1; i++) {
+    if (value <= values[i]) {
+      while (i < l && value === values[i])
+        i++;
+      if (i === 0)
+        return 0;
+      if (value !== values[i-1]) {
+        i += (value - values[i-1]) / (values[i] - values[i-1]);
+      }
+      return i / l;
+    }
   }
-  console.log(table.toString());
+  return 1;
+};
+
+//Replace zero values in an array with spaces
+Simulation.prototype.zerosAsSpaces = function(values) {
+  return values.map(function(v) { return v !== 0 ? v : " "});
 };
 
 Simulation.prototype.__proto__ = events.EventEmitter.prototype;
