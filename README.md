@@ -74,9 +74,9 @@ Running with examples/ex4.txt and 1 workers
 25 houses were visited!
 ```
 
-Resulting png:
+Resulting png (stretched 10x):
 
-![examples/ex4.png](https://github.com/marccardinal/pizza/raw/master/examples/ex4.png)
+<img src="https://github.com/marccardinal/pizza/raw/master/examples/ex4.png" alt="examples/ex4.png" width=90 height=50 />
 
 
 ```
@@ -86,9 +86,9 @@ Running with examples/input.txt and 1 workers
 2565 houses were visited!
 ```
 
-Resulting png:
+Resulting png (stretched 4x):
 
-![examples/input.png](https://github.com/marccardinal/pizza/raw/master/examples/input.png)
+<img src="https://github.com/marccardinal/pizza/raw/master/examples/input.png" alt="examples/ex4.png" width=544 height=508 />
 
 
 ```
