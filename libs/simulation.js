@@ -100,7 +100,7 @@ Simulation.prototype.png = function(file) {
   for (var y = 0; y < houses.height; y++) {
     for (var x = 0; x < houses.width; x++) {
       var idx = (houses.width * (houses.height - y - 1) + x) << 2;
-      var intensity = parseInt(this.percentRank(houses.values, houses.grid[y][x]) * 255);
+      var intensity = parseInt(this.percentRank(houses.values, houses.grid[y][x]) * 255, 'weak');
 
       png.data[idx + 0] = intensity;
       png.data[idx + 1] = 0;
@@ -162,25 +162,35 @@ Simulation.prototype.housesMatrix = function() {
   };
 };
 
-//Calculate the percentile rank for a given value in an array of values
-//Source: https://gist.github.com/IceCreamYou/6ffa1b18c4c8f6aeaad2
-//Returns a value between 0 and 1
-Simulation.prototype.percentRank = function(values, value) {
-  if (typeof value !== 'number')
-    throw new TypeError('value must be a number');
-  for (var i = 0, l = values.length; i < 1; i++) {
-    if (value <= values[i]) {
-      while (i < l && value === values[i])
-        i++;
-      if (i === 0)
-        return 0;
-      if (value !== values[i-1]) {
-        i += (value - values[i-1]) / (values[i] - values[i-1]);
-      }
-      return i / l;
-    }
+//The percentile rank of a value relative to an array of values.
+//A percentile of, for example, 80 percent means that 80 percent of the
+//  values in values are below the given score. 
+//
+//Values for kind:
+//  "weak": This kind corresponds to the definition of a cumulative
+//          distribution function.  A percentileofscore of 80%
+//          means that 80% of values are less than or equal
+//          to the provided score.
+//  "strict": Similar to "weak", except that only values that are
+//            strictly less than the given score are counted.
+//  "mean": The average of the "weak" and "strict" scores, often used in
+//          testing.
+Simulation.prototype.percentRank = function(values, value, kind) {
+  if (typeof kind === 'undefined')
+    kind = 'weak';
+
+  switch (kind) {
+    case 'strict':
+      return (values.filter(function(v) { return v < value }).length / values.length);
+    case 'weak':
+      return (values.filter(function(v) { return v <= value }).length / values.length);
+    case 'mean':
+      return ((values.filter(function(v) { return v < value }).length
+        + values.filter(function(v) { return v <= value }).length)
+        * 50.0 / values.length);
+    default:
+      throw new TypeError('kind must be one of strict, weak, mean');
   }
-  return 1;
 };
 
 //Replace zero values in an array with spaces
